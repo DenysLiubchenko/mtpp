@@ -12,6 +12,8 @@ import edu.kpi.lab.lab1.memoryBoundTasks.Transposer;
 
 public class Lab1 {
 
+  private static final int[] THREAD_COUNTS = {1, 2, 4, 8, 16};
+
   public static <T> void printMatrix(T[][] matrix, String title) {
     System.out.println(title);
     if (matrix == null || matrix.length == 0) {
@@ -26,131 +28,167 @@ public class Lab1 {
       for (int j = 0; j < maxCols; j++) {
         System.out.print(matrix[i][j] + "\t");
       }
-      if (matrix[0].length > maxCols) {
-        System.out.print("...");
-      }
+      if (matrix[0].length > maxCols) System.out.print("...");
       System.out.println();
     }
-    if (matrix.length > maxRows) {
-      System.out.println("...");
-    }
+    if (matrix.length > maxRows) System.out.println("...");
     System.out.println("Matrix dimensions: " + matrix.length + " x " + matrix[0].length);
     System.out.println();
   }
 
-  public static void main(String[] args) {
-    System.out.println("CPU-bound tasks:");
-    MonteCarloPiCalculator monteCarloPiCalculator = new MonteCarloPiCalculator();
-    long startPiParallel = System.currentTimeMillis();
-    double piParallel = monteCarloPiCalculator.calculatePi(1_000_000_000, 100);
-    long endPiParallel = System.currentTimeMillis();
-
-    long startPiIterative = System.currentTimeMillis();
-    double piIterative = monteCarloPiCalculator.calculatePi(1_000_000_000, 1);
-    long endPiIterative = System.currentTimeMillis();
-
-    System.out.println("Parallel calculation of Pi: " + piParallel + " Time taken: " + (endPiParallel - startPiParallel) + " ms");
-    System.out.println("Iterative calculation of Pi: " + piIterative + " Time taken: " + (endPiIterative - startPiIterative) + " ms");
-
-    //    ---------------------------------------------------------------
-    FactorialCalculator factorialCalculator = new FactorialCalculator();
-    long startFactParallel = System.currentTimeMillis();
-    BigInteger factorialParallel = factorialCalculator.calculateFactorial(50000, 5);
-    long endFactParallel = System.currentTimeMillis();
-
-    long startFactIterative = System.currentTimeMillis();
-    BigInteger factorialIterative = factorialCalculator.calculateFactorial(50000, 1);
-    long endFactIterative = System.currentTimeMillis();
-
-    System.out.println(
-        "Parallel calculation of Factorial: Time taken: " + (endFactParallel - startFactParallel) + " ms");
-    System.out.println(
-        "Iterative calculation of Factorial: Time taken: " + (endFactIterative - startFactIterative) + " ms");
-
-    //    ---------------------------------------------------------------
-    PrimeNumberCalculator primeCalculator = new PrimeNumberCalculator();
-    long startPrimeParallel = System.currentTimeMillis();
-    List<Integer> primesParallel = primeCalculator.calculatePrimes(1, 10_000_000, 8);
-    long endPrimeParallel = System.currentTimeMillis();
-
-    long startPrimeIterative = System.currentTimeMillis();
-    List<Integer> primesIterative = primeCalculator.calculatePrimes(1, 10_000_000, 1);
-    long endPrimeIterative = System.currentTimeMillis();
-
-    System.out.println(
-        "Parallel calculation of Primes: Found " + primesParallel.size() + " primes. Time taken: " + (endPrimeParallel -
-            startPrimeParallel)
-            + " ms");
-    System.out.println(
-        "Iterative calculation of Primes: Found " + primesIterative.size() + " primes. Time taken: " + (endPrimeIterative
-            - startPrimeIterative) + " ms");
-
-    //    ---------------------------------------------------------------
-    System.out.println("\nIO-bound tasks:");
-    Transposer transposer = new Transposer();
-
-    // Create a test matrix
-    int matrixSize = 10000;
-    Integer[][] testMatrix = new Integer[matrixSize][matrixSize];
-    for (int i = 0; i < matrixSize; i++) {
-      for (int j = 0; j < matrixSize; j++) {
-        testMatrix[i][j] = i * matrixSize + j;
-      }
-    }
-
-    long startTransposeParallel = System.currentTimeMillis();
-    Integer[][] transposedParallel = transposer.transpose(testMatrix, 8);
-    long endTransposeParallel = System.currentTimeMillis();
-
-    long startTransposeIterative = System.currentTimeMillis();
-    Integer[][] transposedIterative = transposer.transpose(testMatrix, 1);
-    long endTransposeIterative = System.currentTimeMillis();
-
-    printMatrix(testMatrix, "Original Matrix (sample):");
-    printMatrix(transposedParallel, "Transposed Matrix - Parallel (sample):");
-
-    System.out.println(
-        "Parallel matrix transposition: Time taken: " + (endTransposeParallel - startTransposeParallel) + " ms");
-    System.out.println(
-        "Iterative matrix transposition: Time taken: " + (endTransposeIterative - startTransposeIterative) + " ms");
-
-    // ---------------------------------------------------------------
-    System.out.println("\nWord counting in directory:");
-
-    String testDirectoryPath = "test_data";
-    int numberOfTestFiles = 1000;
-
-    try {
-      System.out.println("Generating " + numberOfTestFiles + " test files...");
-      long startGeneration = System.currentTimeMillis();
-      TestDataGenerator.generateTestFiles(testDirectoryPath, numberOfTestFiles);
-      long endGeneration = System.currentTimeMillis();
-      System.out.println("Test files generated in " + (endGeneration - startGeneration) + " ms");
-
-      WordCounter wordCounter = new WordCounter();
-
-      long startCountParallel = System.currentTimeMillis();
-      long totalWordsParallel = wordCounter.countWordsInDirectory(testDirectoryPath, 4);
-      long endCountParallel = System.currentTimeMillis();
-
-      long startCountIterative = System.currentTimeMillis();
-      long totalWordsIterative = wordCounter.countWordsInDirectory(testDirectoryPath, 1);
-      long endCountIterative = System.currentTimeMillis();
-
-      System.out.println(
-          "Parallel word counting (8 threads): Total words = " + totalWordsParallel +
-              ", Time taken: " + (endCountParallel - startCountParallel) + " ms");
-      System.out.println(
-          "Iterative word counting (1 thread): Total words = " + totalWordsIterative +
-              ", Time taken: " + (endCountIterative - startCountIterative) + " ms");
-
-      TestDataGenerator.cleanupTestFiles(testDirectoryPath);
-
-    } catch (Exception e) {
-      System.err.println("Error during word counting test: " + e.getMessage());
-      e.printStackTrace();
-    }
-
+  private static void printRow(int threads, long timeMs, long baseTimeMs) {
+    double speedup = baseTimeMs > 0 ? (double) baseTimeMs / timeMs : 1.0;
+    double efficiency = speedup / threads * 100;
+    System.out.printf("  %-8d | %-12d | %-10.2f | %-12.1f%%%n",
+      threads, timeMs, speedup, efficiency);
   }
 
+  private static void printTableHeader() {
+    System.out.println("  Threads  | Time (ms)    | Speedup    | Efficiency");
+    System.out.println("  ---------|--------------|------------|-------------");
+  }
+
+  private static void benchmarkMonteCarloPi() {
+    System.out.println("\n[CPU-BOUND] Monte Carlo Pi (1,000,000,000 samples)");
+    printTableHeader();
+
+    MonteCarloPiCalculator calc = new MonteCarloPiCalculator();
+    long baseTime = -1;
+
+    for (int threads : THREAD_COUNTS) {
+      long start = System.currentTimeMillis();
+      double pi = calc.calculatePi(1_000_000_000, threads);
+      long elapsed = System.currentTimeMillis() - start;
+
+      if (baseTime < 0) baseTime = elapsed;
+      printRow(threads, elapsed, baseTime);
+    }
+  }
+
+  private static void benchmarkFactorial() {
+    System.out.println("\n[CPU-BOUND] Factorial(50000)");
+    printTableHeader();
+
+    FactorialCalculator calc = new FactorialCalculator();
+    long baseTime = -1;
+
+    for (int threads : THREAD_COUNTS) {
+      long start = System.currentTimeMillis();
+      BigInteger result = calc.calculateFactorial(50000, threads);
+      long elapsed = System.currentTimeMillis() - start;
+
+      if (baseTime < 0) baseTime = elapsed;
+      printRow(threads, elapsed, baseTime);
+    }
+  }
+
+  private static void benchmarkPrimes() {
+    System.out.println("\n[CPU-BOUND] Prime numbers in [1, 10,000,000]");
+    printTableHeader();
+
+    PrimeNumberCalculator calc = new PrimeNumberCalculator();
+    long baseTime = -1;
+
+    for (int threads : THREAD_COUNTS) {
+      long start = System.currentTimeMillis();
+      List<Integer> primes = calc.calculatePrimes(1, 10_000_000, threads);
+      long elapsed = System.currentTimeMillis() - start;
+
+      if (baseTime < 0) baseTime = elapsed;
+      System.out.printf("  %-8d | %-12d | %-10.2f | %-12.1f%%  (found %d primes)%n",
+        threads, elapsed,
+        baseTime > 0 ? (double) baseTime / elapsed : 1.0,
+        baseTime > 0 ? ((double) baseTime / elapsed / threads * 100) : 100.0,
+        primes.size());
+      if (baseTime < 0) baseTime = elapsed;
+    }
+  }
+
+  private static void benchmarkTranspose() {
+    System.out.println("\n[MEMORY-BOUND] Matrix transposition (10000 x 10000)");
+    printTableHeader();
+
+    Transposer transposer = new Transposer();
+    int matrixSize = 10000;
+    Integer[][] testMatrix = new Integer[matrixSize][matrixSize];
+    for (int i = 0; i < matrixSize; i++)
+      for (int j = 0; j < matrixSize; j++)
+        testMatrix[i][j] = i * matrixSize + j;
+
+    long baseTime = -1;
+    Integer[][] lastTransposed = null;
+
+    for (int threads : THREAD_COUNTS) {
+      long start = System.currentTimeMillis();
+      lastTransposed = transposer.transpose(testMatrix, threads);
+      long elapsed = System.currentTimeMillis() - start;
+
+      if (baseTime < 0) baseTime = elapsed;
+      printRow(threads, elapsed, baseTime);
+    }
+
+    printMatrix(testMatrix,       "Original Matrix (sample):");
+    printMatrix(lastTransposed,   "Transposed Matrix (sample):");
+  }
+
+  private static void benchmarkWordCount(String testDir, int fileCount) {
+    System.out.println("\n[IO-BOUND] Word counting (" + fileCount + " files)");
+    printTableHeader();
+
+    WordCounter wordCounter = new WordCounter();
+    long baseTime = -1;
+
+    for (int threads : THREAD_COUNTS) {
+      try {
+        long start = System.currentTimeMillis();
+        long totalWords = wordCounter.countWordsInDirectory(testDir, threads);
+        long elapsed = System.currentTimeMillis() - start;
+
+        if (baseTime < 0) baseTime = elapsed;
+        System.out.printf("  %-8d | %-12d | %-10.2f | %-12.1f%%  (words: %d)%n",
+          threads, elapsed,
+          baseTime > 0 ? (double) baseTime / elapsed : 1.0,
+          baseTime > 0 ? ((double) baseTime / elapsed / threads * 100) : 100.0,
+          totalWords);
+        if (baseTime < 0) baseTime = elapsed;
+      } catch (Exception e) {
+        System.err.println("  Error for " + threads + " threads: " + e.getMessage());
+      }
+    }
+  }
+
+  public static void main(String[] args) {
+    System.out.println("=================================================================");
+
+    System.out.println("\n=== CPU-BOUND TASKS ===");
+    benchmarkMonteCarloPi();
+    benchmarkFactorial();
+    benchmarkPrimes();
+
+    System.out.println("\n=== MEMORY-BOUND TASKS ===");
+    benchmarkTranspose();
+
+    System.out.println("\n=== IO-BOUND TASKS ===");
+    String testDir = "test_data";
+    int fileCount = 1000;
+
+    try {
+      System.out.println("Generating " + fileCount + " test files...");
+      long genStart = System.currentTimeMillis();
+      TestDataGenerator.generateTestFiles(testDir, fileCount);
+      System.out.println("Generated in " + (System.currentTimeMillis() - genStart) + " ms");
+
+      benchmarkWordCount(testDir, fileCount);
+
+    } catch (Exception e) {
+      System.err.println("Error generating test files: " + e.getMessage());
+      e.printStackTrace();
+    } finally {
+      try {
+        TestDataGenerator.cleanupTestFiles(testDir);
+      } catch (Exception ignored) {}
+    }
+
+    System.out.println("\n=================================================================");
+  }
 }
